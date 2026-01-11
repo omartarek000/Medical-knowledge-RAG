@@ -25,7 +25,7 @@ pip install -r requirements.txt
 # running the app 
 if you want to run the app use the following  command 
 ```bash
-uvicorn main:app --reload --host -- port 8000
+uvicorn main:app --reload --host --port 5000
 ```
 this will run the app on localhost port 8000 you can change the port to any port you like also you can change localhost to 0.0.0.0 to make it accessible from other devices on the same network and -- reload is used to reload the app automatically when you make changes to the code to make sure everything is working you can access the following endpoint 
 you can just use 
