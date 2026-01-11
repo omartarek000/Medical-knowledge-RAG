@@ -1,6 +1,6 @@
 import fastapi.testclient as testclient
 from fastapi import FastAPI
-from src.routes.base import api_router
+from src.app.routes.base import api_router
 import os 
 
 app = FastAPI()
