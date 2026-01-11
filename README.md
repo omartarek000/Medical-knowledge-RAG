@@ -25,12 +25,12 @@ pip install -r requirements.txt
 # running the app 
 if you want to run the app use the following  command 
 ```bash
-uvicorn main:app --reload --host --port 5000
+uvicorn src.app.main:app --reload --host --port 5000
 ```
 this will run the app on localhost port 8000 you can change the port to any port you like also you can change localhost to 0.0.0.0 to make it accessible from other devices on the same network and -- reload is used to reload the app automatically when you make changes to the code to make sure everything is working you can access the following endpoint 
 you can just use 
 ```bash
-uvicorn main:app
+uvicorn src.app.main:app
 ```
 # testing the app
 to test the apis you can use pytest and use the file test_api.py to test the apis as you would create more apis you can add more tests to the test_api.py file to test the new apis
