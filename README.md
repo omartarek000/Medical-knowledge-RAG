@@ -14,9 +14,9 @@ to activate the virtual enviroment use the following command
 ```bash
 source venv/bin/activate
 ```
-on windows use the following command
+on windows powershell use the following command
 ```bash
-venv\Scripts\activate
+venv\Scripts\Activate
 ```
 after activating the virtual enviroment you need to install the requirments using the following command 
 ```bash
