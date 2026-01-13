@@ -1,4 +1,4 @@
-from fastapi import  APIRouter , Depends , UploadFile
+from fastapi import APIRouter , Depends , UploadFile
 from src.app.helpers.config import get_settings , Settings
 from src.app.Controllers.DataController import DataController
 
