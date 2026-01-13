@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "default-app"
     APP_VERSION: str = "1.0.0"
     OPENAI_API_KEY: str = ""
-    FILE_ALLOWED_EXTENSIONS: list = []
-    FILE_ALLOWED_SIZE_MB: int = 10
+    FILE_ALLOWED_TYPES: list = []
+    FILE_ALLOWED_MAX_SIZE_MB: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",
