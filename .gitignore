@@ -2,6 +2,6 @@
 .env
 /__pycache__
 /.pytest_cache
-/src/routes/__pycache__
-/tests/__pycache__
-/src/app/__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
