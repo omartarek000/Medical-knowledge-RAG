@@ -1,5 +1,7 @@
 from src.app.Controllers.BaseController import BaseController
-from fastapi import UploadFile , HTTPException , status
+from fastapi import UploadFile , HTTPException 
+from .ProjectController import ProjectController
+import os
 
 
 class DataController(BaseController):
@@ -21,4 +23,19 @@ class DataController(BaseController):
             )
 
 
+    def generate_unique_filename(self , original_filename : str , project_id : str):
+        random_filename = self.generate_random_string()
+        project_path = ProjectController().get_project_path(project_id)
+        clean_filename = self.clean_filename(original_filename)
+        new_file_path = os.path.join(project_path , random_filename + "_" + clean_filename)
+
+        # recursively call this function until a unique filename is generated
+        if os.path.exists(new_file_path):
+            return self.generate_unique_filename(original_filename , project_id)
+        return new_file_path
+    
+
+    def clean_filename(self , original_filename : str):
+        return original_filename.replace(" ", "_")
+    
 

@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from src.app.routes.base import api_router
 from src.app.routes.data import data_router
 from src.app.helpers.config import get_settings , Settings
+from src.app.Controllers import ProjectController
 
 app = FastAPI()
 app.include_router(api_router)

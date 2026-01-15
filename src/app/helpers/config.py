@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     FILE_ALLOWED_TYPES: list = []
     FILE_ALLOWED_MAX_SIZE_MB: int = 10
+    PROJECTS_DIR: str = ""
+    FILE_DEFAULT_CHUNK_SIZE: int = 512000 #512KB change this as you want 
 
     model_config = SettingsConfigDict(
         env_file=".env",
