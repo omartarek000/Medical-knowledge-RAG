@@ -23,7 +23,7 @@ class DataController(BaseController):
             )
 
 
-    def generate_unique_filename(self , original_filename : str , project_id : str):
+    def generate_unique_filepath(self , original_filename : str , project_id : str):
         random_filename = self.generate_random_string()
         project_path = ProjectController().get_project_path(project_id)
         clean_filename = self.clean_filename(original_filename)
@@ -32,7 +32,7 @@ class DataController(BaseController):
         # recursively call this function until a unique filename is generated
         if os.path.exists(new_file_path):
             return self.generate_unique_filename(original_filename , project_id)
-        return new_file_path
+        return new_file_path , random_filename + "_" + clean_filename
     
 
     def clean_filename(self , original_filename : str):
