@@ -33,3 +33,6 @@ def test_upload_data_invalid_file():
     response = client.post(f"/api/data/upload/{project_id}" , files=file_payload)
     assert response.status_code == 400
     assert response.json() == {"detail": "File type is not allowed."}
+
+
+def test_process_data():
