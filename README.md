@@ -38,3 +38,22 @@ to run the tests use the following command
 ```bash
 pytest
 ```
+
+# docker and MongoDB
+in order to store the chunks we generated from the documents we need to store it in a database
+beacuse of this we need to use mongoDB , just you need to famalirize yourself just a bit with docker and docker-compose 
+first thing you need is to install docker 
+this is the docker url
+
+[Docker Desktop for windows](https://www.docker.com/products/docker-desktop/)
+
+[how to install docker on linux ](https://docs.docker.com/desktop/setup/install/linux/)
+
+afer verifying that docker works on your system go the directory where the docker file presents 
+```bash
+cd docker , docker compose up --watch
+```
+[a quick guide on docker compose](https://docs.docker.com/compose/gettingstarted/) and what the commands mean 
+
+your mongodb will be running on port 27017 we can download  studio 3t to view your database
+[studio 3t ](https://studio3t.com/download/)

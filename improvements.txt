@@ -1,3 +1,6 @@
 1. add the magic numbers header check to allow only pdf files not any malware 
     the change will be in the data controller class 
     the package you can use is python-magic
+
+2.tasks
+    - modify the readme file so the steps of the docker can be achieved 
