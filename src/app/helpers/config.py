@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     FILE_ALLOWED_MAX_SIZE_MB: int = 10
     PROJECTS_DIR: str = ""
     FILE_DEFAULT_CHUNK_SIZE: int = 512000 #512KB change this as you want 
+    MONGO_URL: str = "mongodb://localhost:27017"
+    MONGO_DATABASE: str = "MedicalRAG"
 
     model_config = SettingsConfigDict(
         env_file=".env",

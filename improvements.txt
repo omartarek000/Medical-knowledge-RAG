@@ -4,3 +4,5 @@
 
 2.tasks
     - modify the readme file so the steps of the docker can be achieved 
+
+3. in the data controller make the file upload cant accept empty files 
