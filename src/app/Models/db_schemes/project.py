@@ -15,3 +15,15 @@ class Project(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         populate_by_name = True  
+    
+
+    # a set of rules to create indexes on the collection
+    @classmethod
+    def get_indexes(cls):
+        return [
+            {
+                "key": [("project_name", 1)],
+                "unique": True,
+                "name": "project_name_idx"
+            }
+        ]

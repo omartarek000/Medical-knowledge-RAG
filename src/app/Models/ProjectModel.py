@@ -10,6 +10,14 @@ class ProjectModel(BaseDataModel):
         self.collection = self.db_client[DataBaseEnum.COLLECTION_PROJECT_NAME.value]
 
 
+
+    async def init_collection(self):
+        all_collections = await self.db_client.list_collection_names()
+        if DataBaseEnum.COLLECTION_PROJECT_NAME.value not in all_collections:
+            await self.db_client.create_collection(DataBaseEnum.COLLECTION_PROJECT_NAME.value)
+            await self.collection.create_index()
+
+
     async def create_project(self,Project : Project):
         result = await self.collection.insert_one(Project.dict())
         Project._id = result.inserted_id
