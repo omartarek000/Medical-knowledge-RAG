@@ -10,6 +10,8 @@ from src.app.routes.schemes.data import ProcessRequest
 from src.app.Models.ProjectModel import ProjectModel 
 from src.app.Models.DataChunkModel import DataChunkModel
 from src.app.Models.db_schemes.DataChunk import DataChunk
+from src.app.Models.AssetModel import AssetModel
+from src.app.Models.db_schemes.asset import Asset
 
 
 logger = logging.getLogger("error_logger")
@@ -40,8 +42,22 @@ async def upload_data(request : Request,project_id : str , file : UploadFile , a
         logger.error(f"Failed to upload file: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_UPLOAD_FAILED}")
 
+
+    asset_model = await AssetModel.create_instance(request.app.mongodb)
+    asset = Asset(
+        asset_project_id=project.id,
+        asset_type=file.content_type,
+        asset_name=filename,
+        asset_path=file_path,
+        asset_size=os.path.getsize(file_path)
+    )
+    asset_record = await asset_model.create_asset(asset)
+
+
     return {"message": ResponseEnums.FILE_UPLOAD_SUCCESS
-    , "filename" : filename }
+    , "filename" : asset_record.asset_name,
+      "asset record id " : str(asset_record.id)
+     }
 
 
 @data_router.post("/process/{project_id}")
