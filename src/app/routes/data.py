@@ -23,7 +23,7 @@ data_router = APIRouter(
 async def upload_data(request : Request,project_id : str , file : UploadFile , app_settings : Settings = Depends(get_settings)
                       , controller : DataController = Depends(DataController)):
 
-    project_model = ProjectModel(request.app.mongodb)
+    project_model = await ProjectModel.create_instance(request.app.mongodb)
     project = await project_model.get_project_create_one(project_id)
     controller.validate_file(file)
 
@@ -65,8 +65,22 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
         for i , chunk in enumerate(chunks)
     ]
     
-    data_chunk_model = DataChunkModel(app_request.app.mongodb)
-    is_inserted = await data_chunk_model.insert_many_chunks(file_chunks_records)
+    data_chunk_model = await DataChunkModel.create_instance(app_request.app.mongodb)
+
+    try:
+        is_inserted = await data_chunk_model.insert_many_chunks(file_chunks_records)
+    except Exception as e:
+        logger.error(f"Failed to insert chunks: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to insert chunks into the database"
+        )
+
+    if not is_inserted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to insert chunks into the database"
+        )
 
     return {
         "status": "success",
