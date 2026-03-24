@@ -21,10 +21,15 @@ class ProcessController(BaseController):
 
     def get_document_loader(self,file_id : str):
         file_extension = self.get_file_extension(file_id)
+
+        if not os.path.exists(os.path.join(self.project_dir_path, file_id)):  # to make sure all the files exist before processing if i wasnt found 
+            return None
+
         if file_extension == ProcessingEnum.TXT.value:
             return TextLoader(os.path.join(self.project_dir_path, file_id) , encoding="utf-8")
         elif file_extension == ProcessingEnum.PDF.value:
             return PyMuPDFLoader(os.path.join(self.project_dir_path, file_id))
+
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported file type: {file_extension}")
 
@@ -32,8 +37,11 @@ class ProcessController(BaseController):
 
     def get_file_content(self , file_id : str):
         loader = self.get_document_loader(file_id)
-        return loader.load()
-    
+        if loader:
+            return loader.load()
+
+        else:
+            return None
     def process_document(self,file_content : list  , file_id : str ,
                     chunk_size : int = 100 , chunk_overlap : int = 20):
 

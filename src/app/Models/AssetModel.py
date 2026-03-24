@@ -24,18 +24,16 @@ class AssetModel(BaseDataModel):
                 await self.collection.create_index(index["key"], name=index["name"], unique=index["unique"])
 
 
-
-
-
     async def create_asset(self , asset:Asset):
         result = await self.collection.insert_one(asset.dict(by_alias=True , exclude_unset=True))
         asset.id = result.inserted_id
         return asset
 
 
-    async def get_all_project_assets(self , project_id : str):
+    async def get_all_project_assets(self , project_id : str , asset_type : str):
         return await self.collection.find(
             {
-                "asset_project_id" : ObjectId(project_id) if isinstance(project_id , str) else project_id
+                "asset_project_id": project_id,
+                "asset_type": asset_type
             }
         ).to_list(length=None)

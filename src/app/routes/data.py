@@ -3,7 +3,7 @@ from src.app.helpers.config import get_settings , Settings
 from src.app.Controllers import DataController, ProjectController, ProcessController
 import aiofiles
 import os
-from src.app.Models.enums import ResponseEnums
+from src.app.Models.enums import ResponseEnums , AssetTypeEnum
 from fastapi import HTTPException 
 import logging
 from src.app.routes.schemes.data import ProcessRequest
@@ -63,51 +63,85 @@ async def upload_data(request : Request,project_id : str , file : UploadFile , a
 @data_router.post("/process/{project_id}")
 async def process_data(project_id : str , request : ProcessRequest , app_request : Request):
     file_id = request.file_id
+    do_reset = request.do_reset
+    chunk_size = request.chunk_size
+    overlap_size = request.overlap_size
 
-    project_model = ProjectModel(app_request.app.mongodb)
+
+    project_model = await ProjectModel.create_instance(app_request.app.mongodb) ## connect the fastapi to the database and init indexes
     project = await project_model.get_project_create_one(project_id)
 
 
-    process_controller = ProcessController(project_id)
-    file_content = process_controller.get_file_content(file_id)
-    chunks = process_controller.process_document(file_content=file_content , file_id=file_id ,
-                chunk_size=request.chunk_size , chunk_overlap=request.overlap_size)
+    project_file_id = []
+    if request.file_id:
+        project_file_id.append(request.file_id)
     
-    if chunks is None or len(chunks) == 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_PROCESSING_FAILED}")
+    else:
+        asset_model = await AssetModel.create_instance(app_request.app.mongodb)
+        project_files = await asset_model.get_all_project_assets(project.id , AssetTypeEnum.PDF.value)
 
-    file_chunks_records = [
-        DataChunk(chunk_text=chunk.page_content, chunk_metadata=chunk.metadata , chunk_order= i + 1 , chunk_project_id= project.id)
-        for i , chunk in enumerate(chunks)
-    ]
-    
+        project_file_id = [   
+            record["asset_name"]
+            for record in project_files
+        ]
+
+        if len(project_file_id) == 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_NOT_FOUND.value}")
+
     data_chunk_model = await DataChunkModel.create_instance(app_request.app.mongodb)
 
-    try:
-        is_inserted = await data_chunk_model.insert_many_chunks(file_chunks_records)
-    except Exception as e:
-        logger.error(f"Failed to insert chunks: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to insert chunks into the database"
-        )
+    if do_reset:
+        _ = await data_chunk_model.delete_by_project_id(project.id)
 
-    if not is_inserted:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to insert chunks into the database"
-        )
 
-    return {
-        "status": "success",
-        "message": "Document processed successfully",
-        "data": {
-            "file_id": file_id,
-            "project_id": str(project.id),
-            "chunks_created": len(file_chunks_records),
-            "chunk_size": request.chunk_size,
-            "chunk_overlap": request.overlap_size
+    process_controller = ProcessController(project_id)   
+    for file_id in project_file_id:
+        
+        file_content = process_controller.get_file_content(file_id)
+
+        if file_content is None:
+            logger.error(f"Failed to get file content for file_id: {file_id}")
+            continue
+
+
+
+        chunks = process_controller.process_document(file_content=file_content , file_id=file_id ,
+                    chunk_size=request.chunk_size , chunk_overlap=request.overlap_size)
+    
+        if chunks is None or len(chunks) == 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_PROCESSING_FAILED}")
+
+        file_chunks_records = [
+            DataChunk(chunk_text=chunk.page_content, chunk_metadata=chunk.metadata , chunk_order= i + 1 , chunk_project_id= project.id)
+            for i , chunk in enumerate(chunks)
+        ]
+        
+        
+
+        try:
+            is_inserted, inserted_count = await data_chunk_model.insert_many_chunks(file_chunks_records)
+        except Exception as e:
+            logger.error(f"Failed to insert chunks: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to insert chunks into the database"
+            )
+
+        if not is_inserted:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to insert chunks into the database"
+            )
+
+        return {
+            "status": "success",
+            "message": "Document processed successfully",
+            "data": {
+                "file_id": file_id,
+                "project_id": str(project.id),
+                "chunks_created": inserted_count,
+                "chunk_size": request.chunk_size
+            }
         }
-    }
 
     

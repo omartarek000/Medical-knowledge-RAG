@@ -39,13 +39,22 @@ class DataChunkModel(BaseDataModel):
             return None
 
     async def insert_many_chunks(self , data_chunks : list[DataChunk] , batch_size : int = 100):
+        total_inserted = 0
         for i in range(0 , len(data_chunks) , batch_size):
             batch = data_chunks[i:i+batch_size]
             operations = [InsertOne(chunk.dict()) for chunk in batch]
-            await self.collection.bulk_write(operations)
+            result = await self.collection.bulk_write(operations)
+            total_inserted += result.inserted_count
         
 
-        return True
+        return True, total_inserted
+
+
+
+
+    async def delete_by_project_id(self , project_id : ObjectId):
+        result = await self.collection.delete_many({"chunk_project_id": project_id})
+        return result.deleted_count
 
     
     

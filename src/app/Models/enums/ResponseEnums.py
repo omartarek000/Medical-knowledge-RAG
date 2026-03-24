@@ -10,3 +10,4 @@ class ResponseEnums(Enum):
     FILE_VALIDATION_SUCCESS = "File validation successful"
     FILE_PROCESSING_SUCCESS = "File processing successful"
     FILE_PROCESSING_FAILED = "File processing failed"
+    FILE_NOT_FOUND = "File not found"
