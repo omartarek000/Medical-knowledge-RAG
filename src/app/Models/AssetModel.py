@@ -30,10 +30,34 @@ class AssetModel(BaseDataModel):
         return asset
 
 
-    async def get_all_project_assets(self , project_id : str , asset_type : str):
-        return await self.collection.find(
-            {
-                "asset_project_id": project_id,
-                "asset_type": asset_type
-            }
-        ).to_list(length=None)
+    async def get_all_project_assets(
+        self, 
+        project_id: str, 
+        asset_type: str, 
+        limit: int = 100,  # Prevents crashing on massive datasets
+        skip: int = 0
+        ):
+        # Query with safety limits and offset pagination
+        cursor = self.collection.find({
+            "asset_project_id": project_id,
+            "asset_type": asset_type
+        }).skip(skip).limit(limit)
+        
+        records = await cursor.to_list(length=limit)
+
+        # Convert dictionary data into typed Asset objects
+        return [
+            Asset(**record)
+            for record in records
+            ]
+
+
+    async def get_asset_record(self , asset_project_id : str , asset_name : str):
+        asset_record = await self.collection.find_one({
+            "asset_project_id": asset_project_id,
+            "asset_name": asset_name
+        })
+        if asset_record is None:
+            return None
+        return Asset(**asset_record)
+    

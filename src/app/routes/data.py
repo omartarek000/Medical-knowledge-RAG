@@ -62,7 +62,7 @@ async def upload_data(request : Request,project_id : str , file : UploadFile , a
 
 @data_router.post("/process/{project_id}")
 async def process_data(project_id : str , request : ProcessRequest , app_request : Request):
-    file_id = request.file_id
+
     do_reset = request.do_reset
     chunk_size = request.chunk_size
     overlap_size = request.overlap_size
@@ -70,20 +70,23 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
 
     project_model = await ProjectModel.create_instance(app_request.app.mongodb) ## connect the fastapi to the database and init indexes
     project = await project_model.get_project_create_one(project_id)
+    asset_model = await AssetModel.create_instance(app_request.app.mongodb)
 
-
-    project_file_id = []
+    project_file_id = {}
     if request.file_id:
-        project_file_id.append(request.file_id)
-    
+        asset_record = await asset_model.get_asset_record(project.id , request.file_id)
+        if asset_record is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_NOT_FOUND.value}")
+        project_file_id = {asset_record.id : asset_record.asset_name}
+        
     else:
-        asset_model = await AssetModel.create_instance(app_request.app.mongodb)
+
         project_files = await asset_model.get_all_project_assets(project.id , AssetTypeEnum.PDF.value)
 
-        project_file_id = [   
-            record["asset_name"]
+        project_file_id =  { 
+            record.id : record.asset_name
             for record in project_files
-        ]
+        } 
 
         if len(project_file_id) == 0:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_NOT_FOUND.value}")
@@ -95,7 +98,7 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
 
 
     process_controller = ProcessController(project_id)   
-    for file_id in project_file_id:
+    for asset_id , file_id in project_file_id.items():
         
         file_content = process_controller.get_file_content(file_id)
 
@@ -103,21 +106,18 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
             logger.error(f"Failed to get file content for file_id: {file_id}")
             continue
 
-
-
         chunks = process_controller.process_document(file_content=file_content , file_id=file_id ,
-                    chunk_size=request.chunk_size , chunk_overlap=request.overlap_size)
+                    chunk_size=request.chunk_size , chunk_overlap=request.overlap_size )
     
         if chunks is None or len(chunks) == 0:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_PROCESSING_FAILED}")
 
         file_chunks_records = [
-            DataChunk(chunk_text=chunk.page_content, chunk_metadata=chunk.metadata , chunk_order= i + 1 , chunk_project_id= project.id)
+            DataChunk(chunk_text=chunk.page_content, chunk_metadata=chunk.metadata , chunk_order= i + 1 ,
+             chunk_project_id= project.id , chunk_asset_id= asset_id)
             for i , chunk in enumerate(chunks)
         ]
         
-        
-
         try:
             is_inserted, inserted_count = await data_chunk_model.insert_many_chunks(file_chunks_records)
         except Exception as e:
