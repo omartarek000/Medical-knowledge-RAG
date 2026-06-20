@@ -2,6 +2,7 @@ from ..LLmEnum import OpenAIModelEnum
 from ..LLmInterface import LLMInterface
 from openai import OpenAI
 import logging
+from ..LLmExceptions import LLMgenerationException , LLMembeddingException , LLMProviderNotFoundException , LLMProviderNotInitializedException
 
 
 class OPENAIprovider(LLMInterface):
@@ -33,7 +34,7 @@ class OPENAIprovider(LLMInterface):
 
 
     def process_text(self , text:str) -> str:
-        return text[:self.default_max_input_tokens]
+        return text[:self.default_max_input_tokens].strip()
 
 
     def set_generation_model(self, model_id:str) -> None:
@@ -49,11 +50,11 @@ class OPENAIprovider(LLMInterface):
 
         if not self.client:
             self.logger.error("OpenAI client not initialized")
-            raise Exception("OpenAI client not initialized")
+            raise LLMProviderNotInitializedException("OpenAI client not initialized")
 
         if not self.generation_model:
             self.logger.error("OpenAI generation model not set")
-            raise Exception("OpenAI generation model not set")
+            raise LLMgenerationException("OpenAI generation model not set")
         
         max_tokens = max_tokens if max_tokens else self.default_max_output_tokens
         temperature = temperature if temperature else self.default_temperature
@@ -75,13 +76,13 @@ class OPENAIprovider(LLMInterface):
 
         if not response or not response.choices or not response.choices[0].message:
             self.logger.error("OpenAI response is empty")
-            raise Exception("OpenAI response is empty")
+            raise LLMgenerationException("OpenAI response is empty")
         
         return response.choices[0].message.content
 
         
 
-    def embed_text(self, text:str , document_type:str) -> list[float]:
+    def embed_text(self, text:str , document_type:str = None) -> list[float]:
         if not self.client:
             self.logger.error("OpenAI client not initialized")
             raise Exception("OpenAI client not initialized")
@@ -104,8 +105,6 @@ class OPENAIprovider(LLMInterface):
 
         
         
-
-    
     def construct_prompt(self , prompt:str , role:str ) -> dict:
         return {
             "role": role,

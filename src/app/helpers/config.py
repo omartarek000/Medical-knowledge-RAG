@@ -12,6 +12,21 @@ class Settings(BaseSettings):
     MONGO_URL: str = "mongodb://localhost:27017"
     MONGO_DATABASE: str = "MedicalRAG"
 
+
+    GENERATION_BACKEND: str = "OPENAI"
+    EMBEDDING_BACKEND: str = "COHERE"
+
+    OPENAI_URL: str = ""
+    OPENAI_API_KEY: str = ""
+
+    GENERATION_MODEL_ID: str = "qwen3.5:9b"
+    EMBEDDING_MODEL_ID: str = "bge-m3:567m"
+    EMBEDDING_MODEL_SIZE: int = 384
+
+    INPUT_DEFAULT_MAX_CHAR: int = 1024
+    GENERATION_DEFAULT_MAX_TOKENS: int = 200
+    GENERATION_DEFAULT_TEMP: float = 0.1
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
