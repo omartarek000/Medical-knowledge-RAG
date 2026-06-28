@@ -11,6 +11,16 @@ class BaseController:
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
         self.file_dir = os.path.join(project_root, self.app_settings.PROJECTS_DIR)
         
+        self.vector_db_path = os.path.join(project_root,self.app_settings.VECTOR_DB_PATH)
+        
         
     def generate_random_string(self , length : int = 10):
         return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
+
+    def get_vector_db_path(self , provider:str):
+        vector_db_path = os.path.join(self.vector_db_path , provider)
+        os.makedirs(vector_db_path, exist_ok=True)
+        return vector_db_path
+

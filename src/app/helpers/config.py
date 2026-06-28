@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     GENERATION_DEFAULT_MAX_TOKENS: int = 200
     GENERATION_DEFAULT_TEMP: float = 0.1
 
+
+
+    VECTOR_DB_BACKEND: str = "QDRANT"
+    VECTOR_DB_PATH: str = "qdrant_db"
+    VECTOR_DB_DISTANCE_METHOD: str = "cosine"
+
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
