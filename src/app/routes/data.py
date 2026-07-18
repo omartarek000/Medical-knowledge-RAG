@@ -25,7 +25,7 @@ data_router = APIRouter(
 async def upload_data(request : Request,project_id : str , file : UploadFile , app_settings : Settings = Depends(get_settings)
                       , controller : DataController = Depends(DataController)):
 
-    project_model = await ProjectModel.create_instance(request.app.mongodb)
+    project_model = ProjectModel(request.app.mongodb)
     project = await project_model.get_project_create_one(project_id)
     controller.validate_file(file)
 
@@ -43,7 +43,7 @@ async def upload_data(request : Request,project_id : str , file : UploadFile , a
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_UPLOAD_FAILED}")
 
 
-    asset_model = await AssetModel.create_instance(request.app.mongodb)
+    asset_model = AssetModel(request.app.mongodb)
     asset = Asset(
         asset_project_id=project.id,
         asset_type=file.content_type,
@@ -68,9 +68,9 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
     overlap_size = request.overlap_size
 
 
-    project_model = await ProjectModel.create_instance(app_request.app.mongodb) ## connect the fastapi to the database and init indexes
+    project_model = ProjectModel(app_request.app.mongodb)
     project = await project_model.get_project_create_one(project_id)
-    asset_model = await AssetModel.create_instance(app_request.app.mongodb)
+    asset_model = AssetModel(app_request.app.mongodb)
 
     project_file_id = {}
     if request.file_id:
@@ -91,7 +91,7 @@ async def process_data(project_id : str , request : ProcessRequest , app_request
         if len(project_file_id) == 0:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{ResponseEnums.FILE_NOT_FOUND.value}")
 
-    data_chunk_model = await DataChunkModel.create_instance(app_request.app.mongodb)
+    data_chunk_model = DataChunkModel(app_request.app.mongodb)
 
     if do_reset:
         _ = await data_chunk_model.delete_by_project_id(project.id)

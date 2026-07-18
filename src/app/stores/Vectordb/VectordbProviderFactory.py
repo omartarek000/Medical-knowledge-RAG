@@ -8,7 +8,7 @@ class VectordbFactory:
     def __init__(self , config:dict):
         self.config = config
 
-    def create_provider(self , provider: str ):
+    def create_provider(self , provider: str ) -> QdrantDb | None:
         if provider == VectordbEnum.QDRANT.value:
             return QdrantDb(
                 db_path = BaseController().get_vector_db_path(provider), 
